@@ -1,0 +1,4 @@
+"id","username","fullname","email","pic_url","signup_flag","ipaddr","country","datecreated"
+1,"userX","Jane Doe","a@notreal.com","https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg","TRUE",172.217.12.78,"US","28/01/2018 - 05:59:36"
+2,"userY","James Ethan Smith","b@notreal.com","https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg","TRUE",172.217.12.78,"US","29/01/2018 - 05:59:36"
+3,"userZ","Zed Zero","c@notreal.com","https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg","FALSE",172.217.12.78,"US","30/01/2018 - 05:59:36"
