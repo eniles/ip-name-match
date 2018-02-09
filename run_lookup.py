@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 from datetime import *
+import csv
 import urllib
 import json
 import time
@@ -49,15 +50,15 @@ def redshift_query_getter(query):
 
     ## DO THE THINGS
     cur.execute(query)
-    for row in cur.fetchall():
-        print(row)    
-
+    #for row in cur.fetchall():
+    #    print(row) 
+    data=cur.fetchall()
     cur.close();
     conn.commit();
     conn.close();
     t_0 = datetime.now() - start
     print('Time to fetch data: %s' % t_0)
-    return None
+    return data
 
 def showhelp():
     print ("Usage: geoip address [address]...")
@@ -71,20 +72,28 @@ if __name__ == "__main__": #code to execute if called from command-line
         #print(inputs[1])
         print("Let's get started...")
 
-        sql_query = "SELECT state_code FROM " + mycreds.tablename1 + " WHERE deceased!=1 LIMIT 10;"
-        redshift_query_getter(sql_query)
-
-        for line in open(inputs[1]):
-        #for address in inputs[1:]:
-            csv_row = line.split(",") #returns a list ["1","50","60"]
+        f = open(inputs[1])
+        reader = csv.reader(f)
+        for row in reader:
+            csv_row = row 
             #print(csv_row)
-            if (csv_row[2] and csv_row[6]
+            name = csv_row[2]
+            if (name and csv_row[6]
                 and re.match(r'^((\d{1,2}|1\d{2}|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d{2}|2[0-4]\d|25[0-5])$', csv_row[6])
                 ):
-                print(csv_row[2] + " " + csv_row[6])
-                time.sleep(15)
+                print(name + " " + csv_row[6])
+                firstname = name.split(' ',1)
+                firstname = firstname[0]
+                lastname = name.rsplit(' ',1)
+                lastname = lastname[1]
+                time.sleep(5)
                 ip_lookup=get_info(csv_row[6])
                 #print(ip_lookup)
                 print("Returned City: ", ip_lookup["city"])
+                #edit sql_query to fit the person database you're checking against 
+                sql_query = "SELECT " + mycreds.id_col + "," + mycreds.fname_col + "," + mycreds.lname_col + "," + mycreds.city_col + "," + mycreds.state_col + " FROM " + mycreds.tablename2 + " WHERE " + mycreds.deceased_col + " is null AND " + mycreds.fname_col + "=upper('" + firstname + "') AND " + mycreds.lname_col + "=upper('" + lastname + "') AND " + mycreds.city_col + "=upper('" + ip_lookup["city"] + "') AND " + mycreds.state_col+ "=upper('" + ip_lookup["region_code"] + "')  LIMIT 10;"
+                print(sql_query)
+                sql_results=redshift_query_getter(sql_query)
+                print(sql_results)
 
         print("************************************************")
