@@ -64,11 +64,12 @@ def redshift_query_getter(query):
     return data
 
 def csv_writer(data, path):
-    #Write data to a CSV file path
-    with open(path, "wb") as csv_file:
+    #Append data to a CSV file path
+    with open(path, "a") as csv_file:
         writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONNUMERIC)
         for line in data:
             writer.writerow(line)
+    csv_file.close()    
 
 
 def showhelp():
@@ -84,9 +85,14 @@ if __name__ == "__main__": #code to execute if called from command-line
         #print(inputs[2])
         print("Let's get started...")
 
+        #open input file
         f = open(inputs[1])
-        ofile_path = inputs[2]
         reader = csv.reader(f)
+        ofile_path = inputs[2]
+        #open output file to set up a clean file, comment out these 2 lines if you want to append to existing file
+        ofile  = open(ofile_path, "wb")
+        ofile.close()
+        #do all the things for each row in the input file
         for row in reader:
             print("**********")
             csv_row = row 
@@ -99,7 +105,11 @@ if __name__ == "__main__": #code to execute if called from command-line
                 firstname = name.split(' ',1)
                 firstname = firstname[0]
                 lastname = name.rsplit(' ',1)
-                lastname = lastname[1]
+                if len(lastname) >= 2:
+                    lastname = lastname[1]
+                else:
+                    lastname = ""
+                csv_row_outlist = (csv_row[0], csv_row[1], csv_row[2], csv_row[3], csv_row[6])    
                 time.sleep(5)
                 ip_lookup=get_info(csv_row[6])
                 #print(ip_lookup)
@@ -112,8 +122,9 @@ if __name__ == "__main__": #code to execute if called from command-line
                 no_results=len(sql_results)
                 #write result to output csv if only one match, otherwise attempt to narrow down by zip code
                 if no_results == 1:
-                    print("WRITE MATCH: " + str(sql_results))
-                    csv_writer(sql_results, ofile_path)
+                    results_out = [ (sql_results[0]+csv_row_outlist), ]
+                    print("WRITE MATCH: " + str(results_out))
+                    csv_writer(results_out, ofile_path)
                 elif no_results > 1:
                     print("too many results, attempting to narrow by zip code")
                     sql_query2 = "SELECT " + mycreds.id_col + "," + mycreds.fname_col + "," + mycreds.lname_col + "," + mycreds.city_col + "," + mycreds.state_col + "," + mycreds.zip_col + " FROM " + mycreds.tablename2 + " WHERE " + mycreds.deceased_col + " is null AND " + mycreds.fname_col + "=upper('" + firstname + "') AND " + mycreds.lname_col + "=upper('" + lastname + "') AND " + mycreds.city_col + "=upper('" + ip_lookup["city"] + "') AND " + mycreds.state_col+ "=upper('" + ip_lookup["region_code"] + "') AND " + mycreds.zip_col + "="+ ip_lookup["zip_code"] +" LIMIT 10;"
@@ -122,8 +133,9 @@ if __name__ == "__main__": #code to execute if called from command-line
                     #print(sql_results2)
                     no_results2=len(sql_results2)
                     if no_results2 == 1:
-                        print("WRITE MATCH: " + str(sql_results2))
-                        csv_writer(sql_results2, ofile_path)
+                        results_out = [ (sql_results2[0]+csv_row_outlist), ]
+                        print("WRITE MATCH: " + str(results_out))
+                        csv_writer(results_out, ofile_path)
                     else:
                         print("NO MATCH: still too many results")
                 else:
