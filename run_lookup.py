@@ -109,10 +109,13 @@ if __name__ == "__main__": #code to execute if called from command-line
                     lastname = lastname[1]
                 else:
                     lastname = ""
+                firstname = firstname.replace("'", r"\'")
+                lastname = lastname.replace("'", r"\'")
                 csv_row_outlist = (csv_row[0], csv_row[1], csv_row[2], csv_row[3], csv_row[6])    
                 time.sleep(5)
                 ip_lookup=get_info(csv_row[6])
                 #print(ip_lookup)
+                ip_lookup["city"] = ip_lookup["city"].replace("'", r"\'")
                 print("Returned City: ", ip_lookup["city"])
                 #edit sql_query to fit the person database you're checking against 
                 sql_query = "SELECT " + mycreds.id_col + "," + mycreds.fname_col + "," + mycreds.lname_col + "," + mycreds.city_col + "," + mycreds.state_col + "," + mycreds.zip_col + " FROM " + mycreds.tablename2 + " WHERE " + mycreds.deceased_col + " is null AND " + mycreds.fname_col + "=upper('" + firstname + "') AND " + mycreds.lname_col + "=upper('" + lastname + "') AND " + mycreds.city_col + "=upper('" + ip_lookup["city"] + "') AND " + mycreds.state_col+ "=upper('" + ip_lookup["region_code"] + "')  LIMIT 10;"
